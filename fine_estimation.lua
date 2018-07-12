@@ -9,7 +9,7 @@ local t = require 'transforms'
 
 --------------  TO CHANGE --------------------------------
 local cmd = torch.CmdLine()
-cmd:option('-folder_path', '../UnLoc_Lab_Dataset/',         'Path to dataset : "../UnLoc_Lab_Dataset/"  or "../UnLoc_Adv_Dataset/" or "../UnLoc_Field_Dataset/" ')
+cmd:option('-folder_path', '/home/xuchong/ssd/Dataset/Pictures_UnLoc/UnLoc_Lab_Dataset/',         'Path to dataset : "/home/xuchong/ssd/Dataset/Pictures_UnLoc/UnLoc_Lab_Dataset/" ')
 local opt = cmd:parse(arg or {})
 
 local folder_path = opt.folder_path

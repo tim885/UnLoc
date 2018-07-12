@@ -9,7 +9,7 @@ local t = require 'transforms'
 
 --------------  TO CHANGE -------------------------------
 local cmd = torch.CmdLine()
-cmd:option('-folder_path', '../UnLoc_Lab_Dataset/',         'Path to dataset : "../UnLoc_Lab_Dataset/"  or "../UnLoc_Adv_Dataset/" or "../UnLoc_Field_Dataset/" ')
+cmd:option('-folder_path', '/home/xuchong/ssd/Dataset/Pictures_UnLoc/UnLoc_Lab_Dataset/',         'Path to dataset : "/home/xuchong/ssd/Dataset/Pictures_UnLoc/UnLoc_Lab_Dataset/"')
 local opt = cmd:parse(arg or {})
 
 local folder_path = opt.folder_path
@@ -52,7 +52,7 @@ end
 
 local realPictData = {}
 
-local file = assert(io.open(data_file_path, 'r'))
+local file = assert(io.open(data_file_path, 'r')) -- load image information file
 while true do 
    local line = file:read('*line')
    if not line then break end
@@ -78,7 +78,7 @@ file:close()
 
 ----------------- LOAD MODEL -------------------------
 
-local model = torch.load(model_coarse):type('torch.CudaTensor')
+local model = torch.load(model_coarse):type('torch.CudaTensor') 
 model:evaluate()
 
 local X_err = {}
@@ -101,33 +101,33 @@ for k,v in pairs(realPictData) do
       end
    end
 
-  
-   local output = model:forward(images:cuda())
+   -- forwardprop of network
+   local output = model:forward(images:cuda()) -- images:cuda()
 
    local _, Xidx = output[1]:sum(1):max(2)
    local _, Yidx = output[2]:sum(1):max(2)
    local _, Rotidx = output[3]:sum(1):max(2)
-   local Xpred = labels_coarse["X"][Xidx:squeeze()]
+   local Xpred = labels_coarse["X"][Xidx:squeeze()] -- convert bin_index to position 
    local Ypred = labels_coarse["Y"][Yidx:squeeze()]
    local Rotpred = labels_coarse["Rot"][Rotidx:squeeze()]
    
    local Xtarget = tonumber(v.L_abs.X)
    local Ytarget = tonumber(v.L_abs.Y)
    local Rottarget = tonumber(v.L_abs.Rot)
-
-   table.insert(X_err, math.abs(tonumber(Xpred) - Xtarget ))
-   table.insert(Y_err, math.abs(tonumber(Ypred) - Ytarget ))
+   
+   table.insert(X_err, math.abs(tonumber(Xpred) - Xtarget ))   
+   table.insert(Y_err, math.abs(tonumber(Ypred) - Ytarget )) 
    table.insert(Rot_err, math.min((tonumber(Rotpred) - Rottarget)%180, (Rottarget - tonumber(Rotpred))%180))
-   print(math.abs(tonumber(Xpred) - Xtarget))
+   print(math.abs(tonumber(Xpred) - Xtarget)) -- display error along X 
 
 end
 
-   
+-- convert to tensor    
 X_err = torch.FloatTensor(X_err)
 Y_err = torch.FloatTensor(Y_err)
 Rot_err = torch.FloatTensor(Rot_err)
 
-local X_ok = torch.le(X_err, 60):float()
+local X_ok = torch.le(X_err, 60):float() -- errors smaller than 60 mm 
 local Y_ok = torch.le(Y_err, 60):float()
 local Rot_ok = torch.le(Rot_err, 10):float()
 local X_Y_ok = torch.cmul(X_ok, Y_ok)
